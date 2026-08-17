@@ -1,13 +1,12 @@
-/**
- * App shell route — wraps Home / Cameras with the dashboard sidebar.
- *
- * URL parent: /app/*
- */
-
-import { DashboardLayout } from '@/features/dashboard/components/dashboard-layout';
+import { AppAuthGuard } from '@/features/app-shell/components/app-auth-guard';
+import { AppShellLayout } from '@/features/app-shell/components/app-shell-layout';
 
 const AppRootRoute = () => {
-  return <DashboardLayout />;
+  return (
+    <AppAuthGuard>
+      <AppShellLayout />
+    </AppAuthGuard>
+  );
 };
 
 export default AppRootRoute;

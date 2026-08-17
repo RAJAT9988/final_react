@@ -1,24 +1,16 @@
 /**
- * Cameras page — dashboard tab.
- *
+ * Cameras page — post-setup app.
  * URL: /app/cameras
  */
 
 import { Head } from '@/components/seo';
+import { CamerasPage } from '@/features/cameras/components/cameras-page';
 
 const CamerasRoute = () => {
   return (
     <>
       <Head title="Cameras" />
-
-      <div className="px-6 py-8 sm:px-8">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900">
-          Cameras
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Camera content will go here.
-        </p>
-      </div>
+      <CamerasPage />
     </>
   );
 };

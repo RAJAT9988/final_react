@@ -1,0 +1,40 @@
+{
+  "events": [
+    {
+      "id": "e1",
+      "camera_id": "1",
+      "camera_name": "Main Entrance",
+      "time": "14:02",
+      "label": "Person at entrance",
+      "kind": "Person",
+      "created_at": "2026-08-13T14:02:00Z"
+    },
+    {
+      "id": "e2",
+      "camera_id": "1",
+      "camera_name": "Main Entrance",
+      "time": "13:48",
+      "label": "Motion in driveway",
+      "kind": "Motion",
+      "created_at": "2026-08-13T13:48:00Z"
+    },
+    {
+      "id": "e3",
+      "camera_id": "1",
+      "camera_name": "Main Entrance",
+      "time": "13:10",
+      "label": "Motion near door",
+      "kind": "Motion",
+      "created_at": "2026-08-13T13:10:00Z"
+    },
+    {
+      "id": "e4",
+      "camera_id": "1",
+      "camera_name": "Main Entrance",
+      "time": "12:55",
+      "label": "Doorbell pressed",
+      "kind": "Doorbell",
+      "created_at": "2026-08-13T12:55:00Z"
+    }
+  ]
+}

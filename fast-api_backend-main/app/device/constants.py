@@ -1,0 +1,14 @@
+DEVICE_ROLES = frozenset({"standalone", "master", "slave"})
+DEVICE_STATUSES = frozenset({"Active", "Inactive", "Maintenance", "offline"})
+APPROVAL_STATUSES = frozenset({"pending_approval", "approved", "rejected"})
+MODEL_IDS = frozenset({"person", "face", "fire_safety"})
+ASSIGNMENT_STATUSES = frozenset({"running", "stopped", "paused"})
+APPROVAL_STATUS_PENDING = "pending_approval"
+APPROVAL_STATUS_APPROVED = "approved"
+APPROVAL_STATUS_REJECTED = "rejected"
+DEVICE_ROLE_SLAVE = "slave"
+DEVICE_ROLE_MASTER = "master"
+DEVICE_STATUS_ACTIVE = "Active"
+MASTER_UNAVAILABLE_MESSAGE = "Target master not available."
+DEVICE_STATUS_INACTIVE = "Inactive"
+ASSIGNMENT_STATUS_RUNNING = "running"

@@ -1,33 +1,23 @@
 /**
- * App URLs used by the setup wizard + dashboard.
+ * App URLs used by the setup wizard + post-setup app.
  *
  * Setup:
- *   1 Login          → /setup/login
- *   Register         → /setup/register
- *   2 Master / Slave → /setup/master-slave
- *   3 Company        → /setup/company
- *   4 Branch         → /setup/company-branch
- *   5 Address        → /setup/company-address
- *   6 Device         → /setup/device
- *   7 User           → /setup/user
+ *   1 Device         → /setup/device
+ *   2 Company        → /setup/company
+ *   3 Branch         → /setup/company-branch
+ *   4 Address        → /setup/company-address
+ *   5 User           → /setup/user
+ *   6 Login          → /setup/login
  *
  * App:
- *   Home     → /app/dashboard
- *   Cameras  → /app/cameras
+ *   Home          → /app/home
+ *   Cameras       → /app/cameras
+ *   Camera live   → /app/cameras/:cameraId
+ *   Devices       → /app/devices
+ *   Device detail → /app/devices/:deviceId
  */
 
 export const paths = {
-  home: {
-    path: '/',
-    getHref: () => '/',
-  },
-  auth: {
-    login: {
-      path: '/auth/login',
-      getHref: (redirectTo?: string | null) =>
-        `/auth/login${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`,
-    },
-  },
   setup: {
     path: '/setup',
     getHref: () => '/setup',
@@ -35,14 +25,6 @@ export const paths = {
       path: '/setup/login',
       getHref: (redirectTo?: string | null) =>
         `/setup/login${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`,
-    },
-    register: {
-      path: '/setup/register',
-      getHref: () => '/setup/register',
-    },
-    masterSlave: {
-      path: '/setup/master-slave',
-      getHref: () => '/setup/master-slave',
     },
     company: {
       path: '/setup/company',
@@ -68,13 +50,29 @@ export const paths = {
   app: {
     path: '/app',
     getHref: () => '/app',
-    dashboard: {
-      path: 'dashboard',
-      getHref: () => '/app/dashboard',
+    home: {
+      path: 'home',
+      getHref: () => '/app/home',
     },
     cameras: {
       path: 'cameras',
       getHref: () => '/app/cameras',
+    },
+    cameraLive: {
+      path: 'cameras/:cameraId',
+      getHref: (cameraId: string) => `/app/cameras/${cameraId}`,
+    },
+    devices: {
+      path: 'devices',
+      getHref: () => '/app/devices',
+    },
+    deviceDetail: {
+      path: 'devices/:deviceId',
+      getHref: (deviceId: string) => `/app/devices/${deviceId}`,
+    },
+    settings: {
+      path: 'settings',
+      getHref: () => '/app/settings',
     },
   },
 } as const;

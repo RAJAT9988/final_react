@@ -1,7 +1,7 @@
 /**
- * Company address form — setup wizard step 5.
+ * Company address form — setup wizard step 4.
  * Fields match Address table (form fields only; audit flags omitted).
- * Submits to POST /api/v1/address/branches/{branchId}/addresses.
+ * Submits to POST /v1/addresses.
  * Form always starts empty and resets after success.
  */
 
@@ -15,7 +15,7 @@ import { useNotifications } from '@/components/ui/notifications';
 import { useCountries } from '@/features/company-address/api/get-countries';
 import { useStatesByCountry } from '@/features/company-address/api/get-states';
 import { useRegisterAddress } from '@/features/company-address/api/register-address';
-import { readSetupState, writeSetupState } from '@/features/setup/config';
+import { completeSetupStep, readSetupState } from '@/features/setup/config';
 
 const addressSchema = z.object({
   countryId: z.string().min(1, 'Required'),
@@ -85,12 +85,8 @@ export const CompanyAddressForm = ({
   const branch = setup.companyBranch;
 
   const countriesQuery = useCountries();
-  const countryIdNumber = Number(selectedCountryId);
   const statesQuery = useStatesByCountry({
-    countryId:
-      Number.isInteger(countryIdNumber) && countryIdNumber > 0
-        ? countryIdNumber
-        : 0,
+    countryId: selectedCountryId,
   });
 
   const registerAddress = useRegisterAddress();
@@ -105,7 +101,7 @@ export const CompanyAddressForm = ({
     { label: 'Select country', value: '' },
     ...(countriesQuery.data ?? []).map((c) => ({
       label: c.country_name,
-      value: String(c.id),
+      value: String(c.country_id),
     })),
   ];
 
@@ -113,7 +109,7 @@ export const CompanyAddressForm = ({
     { label: 'Select state', value: '' },
     ...(statesQuery.data ?? []).map((s) => ({
       label: s.state_name,
-      value: String(s.id),
+      value: String(s.state_id),
     })),
   ];
 
@@ -158,20 +154,22 @@ export const CompanyAddressForm = ({
           registerAddress.mutate(
             {
               branchId: branch.branchId,
-              countryId: Number(values.countryId),
-              stateId: Number(values.stateId),
+              countryId: values.countryId,
+              stateId: values.stateId,
               city: values.city,
               area: values.area,
+              locality: values.locality || undefined,
               landmark: values.landmark || undefined,
+              street: values.street || undefined,
               postalCode: values.postalCode,
               latitude: values.latitude || undefined,
               longitude: values.longitude || undefined,
             },
             {
               onSuccess: (address) => {
-                writeSetupState({
+                completeSetupStep('address', {
                   companyAddress: {
-                    addressId: String(address.id),
+                    addressId: String(address.address_id),
                     companyId: company.companyId,
                     branchId: branch.branchId,
                     countryId: values.countryId,
@@ -227,6 +225,18 @@ export const CompanyAddressForm = ({
                 options={countryOptions}
                 disabled={countriesQuery.isLoading}
               />
+              {countriesQuery.isLoading ? (
+                <p className="-mt-2 text-xs text-slate-500">Loading countries…</p>
+              ) : countriesQuery.isError ? (
+                <p className="-mt-2 text-xs text-red-600">
+                  Could not load countries. Check that FastAPI is running on port
+                  8000.
+                </p>
+              ) : (countriesQuery.data?.length ?? 0) === 0 ? (
+                <p className="-mt-2 text-xs text-red-600">
+                  No countries returned from GET /v1/countries.
+                </p>
+              ) : null}
               <Select
                 label="State"
                 error={formState.errors['stateId']}

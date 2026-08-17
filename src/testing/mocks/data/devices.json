@@ -1,0 +1,67 @@
+{
+  "current": {
+    "device_id": "dev-local",
+    "company_id": "",
+    "branch_id": "",
+    "device_name": "Atomo Processing Unit",
+    "ip": "192.168.1.20",
+    "device_role": "standalone",
+    "status": "Active",
+    "serial_no": "ATMO-HUB-100-0001",
+    "mac_id": "A4:5E:60:1B:2C:3D",
+    "manufacturing_date": "",
+    "created_at": "",
+    "created_by": "",
+    "updated_at": "",
+    "updated_by": "",
+    "is_system_record": true,
+    "is_deleted": false
+  },
+  "adopted": [
+    {
+      "device_id": "dev-1",
+      "company_id": "company-1",
+      "branch_id": "branch-1",
+      "device_name": "Lobby Sensor Hub",
+      "ip": "192.168.1.20",
+      "device_role": "standalone",
+      "status": "Active",
+      "serial_no": "ATMO-HUB-100-0001",
+      "mac_id": "A4:5E:60:1B:2C:3D",
+      "manufacturing_date": "2025-11-12",
+      "created_at": "2026-08-01T09:00:00Z",
+      "created_by": "admin",
+      "updated_at": "2026-08-13T13:12:00Z",
+      "updated_by": "system",
+      "is_system_record": false,
+      "is_deleted": false
+    }
+  ],
+  "discovered": [
+    {
+      "id": "dd1",
+      "device_name": "Lobby_Sensor_Hub",
+      "ip": "192.168.1.20",
+      "device_role": "standalone",
+      "serial_no": "ATMO-HUB-100-0002",
+      "mac_id": "A4:5E:60:1B:2C:3E",
+      "hidden": false
+    }
+  ],
+  "device_health": {
+    "dev-1": {
+      "device_health_id": "dh-1",
+      "device_id": "dev-1",
+      "cpu_usage": 34.2,
+      "npu_usage": 18.5,
+      "ram": 62.8,
+      "temperature": 41.6,
+      "created_at": "2026-08-13T10:00:00Z",
+      "created_by": "system",
+      "updated_at": "2026-08-13T13:12:00Z",
+      "updated_by": "system",
+      "is_system_record": true,
+      "is_deleted": false
+    }
+  }
+}

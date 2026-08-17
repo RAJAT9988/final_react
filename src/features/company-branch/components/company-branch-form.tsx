@@ -1,6 +1,6 @@
 /**
- * Company branch form — setup wizard step 4.
- * Submits to POST /api/v1/company-branch/register-branch.
+ * Company branch form — setup wizard step 3.
+ * Submits to POST /v1/companies/{company_id}/branches.
  * Form always starts empty and resets after success (no older values shown).
  */
 
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
 import { useNotifications } from '@/components/ui/notifications';
 import { useRegisterBranch } from '@/features/company-branch/api/register-branch';
-import { readSetupState, writeSetupState } from '@/features/setup/config';
+import { completeSetupStep, readSetupState } from '@/features/setup/config';
 
 const branchSchema = z.object({
   branchName: z
@@ -41,10 +41,7 @@ const branchSchema = z.object({
   branchContactPersonPhone: z
     .string()
     .trim()
-    .min(10, 'Must be at least 10 characters')
-    .max(20, 'Must be at most 20 characters')
-    .regex(/^[0-9+\-\s]+$/, 'Invalid mobile number')
-    .regex(/[0-9]/, 'Must include at least one digit'),
+    .regex(/^\d{10}$/, 'Mobile number must be exactly 10 digits'),
 });
 
 type BranchFormInput = z.infer<typeof branchSchema>;
@@ -82,9 +79,9 @@ export const CompanyBranchForm = ({
   const registerBranch = useRegisterBranch({
     mutationConfig: {
       onSuccess: (branch, variables) => {
-        writeSetupState({
+        completeSetupStep('branch', {
           companyBranch: {
-            branchId: String(branch.id),
+            branchId: String(branch.branch_id),
             companyId: company.companyId,
             branchName: variables.branchName,
           },
@@ -170,6 +167,9 @@ export const CompanyBranchForm = ({
                     error={formState.errors['branchContactPersonPhone']}
                     registration={register('branchContactPersonPhone')}
                     autoComplete="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="10 digits"
                   />
                 </div>
               </div>

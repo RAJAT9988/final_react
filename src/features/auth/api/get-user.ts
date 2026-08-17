@@ -1,32 +1,54 @@
 /**
- * Profile API — GET /api/v1/profile
+ * Profile API — GET /v1/profile
  *
- * Asks the backend: "who is the logged-in user?"
- * Needs a Bearer access token (api-client adds it automatically).
+ * Returns the logged-in UserDTO. Needs a Bearer access token.
  */
 
 import { api } from '@/lib/api-client';
 import { clearTokens, getAccessToken } from '@/lib/auth-tokens';
-import { ApiResponse, User } from '@/types/api';
+import { User } from '@/types/api';
 
-// ========== 1) MAIN API CALL ==========
-// Return the current user, or null if not logged in
+type ProfileDto = {
+  user_id: string;
+  name: string;
+  email: string;
+  role_id: number;
+  company_id: string;
+  status: string;
+  mfa_enabled: boolean;
+  role_name?: string | null;
+  is_deleted?: boolean;
+};
+
+const toUser = (dto: ProfileDto): User => {
+  const userId = String(dto.user_id);
+  return {
+    id: userId,
+    user_id: userId,
+    name: dto.name,
+    email: dto.email,
+    role_id: dto.role_id,
+    company_id: String(dto.company_id),
+    status: dto.status,
+    mfa_enabled: dto.mfa_enabled,
+    role_name: dto.role_name,
+    is_deleted: dto.is_deleted,
+    firstName: dto.name,
+  };
+};
+
 export const getUser = async (): Promise<User | null> => {
-  // No token saved → user is not logged in (do not call the API)
   if (!getAccessToken()) {
     return null;
   }
 
   try {
-    // THIS LINE talks to the backend:
-    // GET {API_URL}/api/v1/profile
-    // Token is attached automatically by api-client
-    const response = await api.get<never, ApiResponse<User>>('/api/v1/profile');
-
-    // Return the user inside `data`, or null if missing
-    return response.data ?? null;
+    const dto = await api.get<never, ProfileDto>('/v1/profile');
+    if (!dto?.user_id) {
+      return null;
+    }
+    return toUser(dto);
   } catch {
-    // Token bad/expired, timeout, or network error → treat as logged out
     clearTokens();
     return null;
   }

@@ -1,6 +1,6 @@
 /**
- * Company registration form — setup wizard step 3.
- * Submits to POST /api/v1/company/register-company, then saves id in setup state.
+ * Company registration form — setup wizard step 2.
+ * Submits to POST /v1/companies, then saves company_id in setup state.
  * Form always starts empty (no older values shown when revisiting).
  */
 
@@ -13,7 +13,7 @@ import { Form, Input } from '@/components/ui/form';
 import { FieldWrapper } from '@/components/ui/form/field-wrapper';
 import { useNotifications } from '@/components/ui/notifications';
 import { useRegisterCompany } from '@/features/company/api/register-company';
-import { writeSetupState } from '@/features/setup/config';
+import { completeSetupStep } from '@/features/setup/config';
 
 const companySchema = z.object({
   companyName: z
@@ -47,10 +47,7 @@ const companySchema = z.object({
   contactPersonMobile: z
     .string()
     .trim()
-    .min(10, 'Must be at least 10 characters')
-    .max(20, 'Must be at most 20 characters')
-    .regex(/^[0-9+\-\s]+$/, 'Invalid mobile number')
-    .regex(/[0-9]/, 'Must include at least one digit'),
+    .regex(/^\d{10}$/, 'Mobile number must be exactly 10 digits'),
 });
 
 type CompanyFormInput = z.infer<typeof companySchema>;
@@ -78,9 +75,9 @@ export const CompanyForm = ({ onBack, onSuccess }: CompanyFormProps) => {
   const registerCompany = useRegisterCompany({
     mutationConfig: {
       onSuccess: (company, variables) => {
-        writeSetupState({
+        completeSetupStep('company', {
           company: {
-            companyId: String(company.id),
+            companyId: String(company.company_id),
             companyName: variables.companyName,
             companyDescription: variables.companyDescription,
             contactPersonName: variables.contactPersonName,
@@ -167,6 +164,9 @@ export const CompanyForm = ({ onBack, onSuccess }: CompanyFormProps) => {
                     error={formState.errors['contactPersonMobile']}
                     registration={register('contactPersonMobile')}
                     autoComplete="tel"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="10 digits"
                   />
                 </div>
               </div>

@@ -12,7 +12,7 @@
 // Check icon used for completed steps
 import { Check } from 'lucide-react';
 
-// SETUP_STEPS = the wizard steps; SetupStepNumber = 1..7
+// SETUP_STEPS = the wizard steps; SetupStepNumber = 1..6
 import { SETUP_STEPS, type SetupStepNumber } from '@/features/setup/config';
 // cn = merge Tailwind classes (active / completed / upcoming styles)
 import { cn } from '@/utils/cn';
@@ -22,7 +22,7 @@ type SetupStepperProps = {
 };
 
 export const SetupStepper = ({ currentStep }: SetupStepperProps) => {
-  // Total number of steps (currently 7)
+  // Total number of steps (currently 6)
   const total = SETUP_STEPS.length;
   // Find label for current step (e.g. "Company")
   const currentMeta = SETUP_STEPS.find((s) => s.step === currentStep);

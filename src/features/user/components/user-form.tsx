@@ -1,18 +1,22 @@
 /**
- * User form — setup wizard step 7.
+ * User form — setup wizard step 5.
+ * Creates a new account for the company, then continues to login.
  * Form always starts empty and resets after success (no older values shown).
  */
 
 import { useRef } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
+import { Link } from 'react-router';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Form, Input, Select } from '@/components/ui/form';
+import { useNotifications } from '@/components/ui/notifications';
+import { paths } from '@/config/paths';
+import { useRegisterUser } from '@/features/user/api/register-user';
 import {
-  createUserId,
+  completeSetupStep,
   readSetupState,
-  writeSetupState,
   SETUP_ROLES,
 } from '@/features/setup/config';
 
@@ -41,10 +45,37 @@ type UserFormProps = {
 };
 
 export const UserForm = ({ onBack, onSuccess }: UserFormProps) => {
+  const { addNotification } = useNotifications();
   const resetRef = useRef<UseFormReturn<UserFormInput>['reset'] | null>(null);
   const setup = readSetupState();
   const company = setup.company;
   const branch = setup.companyBranch;
+
+  const registerUser = useRegisterUser({
+    mutationConfig: {
+      onSuccess: (user, variables) => {
+        if (!company?.companyId) return;
+
+        completeSetupStep('user', {
+          user: {
+            userId: user.userId,
+            roleId: variables.roleId,
+            companyId: company.companyId,
+            name: variables.name,
+            email: variables.email,
+            password: variables.password,
+          },
+        });
+        resetRef.current?.(emptyUser);
+        addNotification({
+          type: 'success',
+          title: 'Account created',
+          message: 'You can now log in with your email and password.',
+        });
+        onSuccess();
+      },
+    },
+  });
 
   if (!company?.companyId || !branch?.branchId) {
     return null;
@@ -53,7 +84,9 @@ export const UserForm = ({ onBack, onSuccess }: UserFormProps) => {
   return (
     <>
       <p className="mb-6 text-sm text-slate-600">
-        Create the first user for {company.companyName}.
+        Create a new account for {company.companyName}. The first user is
+        created as Owner. You will log in with this email and password on the
+        next step.
       </p>
 
       <div className="mb-6 space-y-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
@@ -78,18 +111,13 @@ export const UserForm = ({ onBack, onSuccess }: UserFormProps) => {
       <Form
         schema={userSchema}
         onSubmit={(values: UserFormInput) => {
-          writeSetupState({
-            user: {
-              userId: createUserId(),
-              roleId: values.roleId,
-              companyId: company.companyId,
-              name: values.name,
-              email: values.email,
-              password: values.password,
-            },
+          registerUser.mutate({
+            companyId: company.companyId,
+            name: values.name,
+            email: values.email,
+            password: values.password,
+            roleId: values.roleId,
           });
-          resetRef.current?.(emptyUser);
-          onSuccess();
         }}
         options={{
           defaultValues: emptyUser,
@@ -134,8 +162,20 @@ export const UserForm = ({ onBack, onSuccess }: UserFormProps) => {
                 <Button type="button" variant="outline" onClick={onBack}>
                   Back
                 </Button>
-                <Button type="submit">Continue</Button>
+                <Button type="submit" isLoading={registerUser.isPending}>
+                  Create account
+                </Button>
               </div>
+
+              <p className="pt-2 text-center text-sm text-slate-600">
+                Already have an account?{' '}
+                <Link
+                  to={paths.setup.login.getHref()}
+                  className="font-medium text-slate-900 underline underline-offset-2 hover:text-slate-700"
+                >
+                  Log in
+                </Link>
+              </p>
             </div>
           );
         }}

@@ -5,7 +5,7 @@ import * as z from 'zod';
 const createEnv = () => {
   // Expected shape of our environment config
   const EnvSchema = z.object({
-    // API base URL, e.g. http://localhost:3000
+    // API base URL, e.g. http://localhost:8000 — empty in dev uses Vite proxy
     API_URL: z.string(),
     // "true" / "false" string → boolean (optional)
     ENABLE_API_MOCKING: z
@@ -31,8 +31,11 @@ const createEnv = () => {
     return acc;
   }, {});
 
-  // Validate the collected env vars
-  const parsedEnv = EnvSchema.safeParse(envVars);
+  // Validate the collected env vars (empty API_URL = use Vite dev proxy)
+  const parsedEnv = EnvSchema.safeParse({
+    API_URL: '',
+    ...envVars,
+  });
 
   // If invalid, throw a clear error listing missing/bad fields
   if (!parsedEnv.success) {

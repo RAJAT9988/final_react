@@ -1,5 +1,5 @@
 /**
- * App router — setup wizard (7 steps) + dashboard.
+ * App router — setup wizard (device → company → user → login) + post-setup app.
  */
 
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
@@ -22,29 +22,8 @@ const convert = (queryClient: QueryClient) => (m: any) => {
 export const createAppRouter = (queryClient: QueryClient) =>
   createBrowserRouter([
     {
-      path: paths.home.path,
-      element: <Navigate to={paths.setup.login.getHref()} replace />,
-    },
-    {
-      path: paths.auth.login.path,
-      element: <Navigate to={paths.setup.login.getHref()} replace />,
-    },
-    {
-      path: paths.setup.path,
-      element: <Navigate to={paths.setup.login.getHref()} replace />,
-    },
-    {
       path: paths.setup.login.path,
       lazy: () => import('./routes/setup/login').then(convert(queryClient)),
-    },
-    {
-      path: paths.setup.register.path,
-      lazy: () => import('./routes/setup/register').then(convert(queryClient)),
-    },
-    {
-      path: paths.setup.masterSlave.path,
-      lazy: () =>
-        import('./routes/setup/master-slave').then(convert(queryClient)),
     },
     {
       path: paths.setup.company.path,
@@ -74,22 +53,40 @@ export const createAppRouter = (queryClient: QueryClient) =>
       children: [
         {
           index: true,
-          element: <Navigate to={paths.app.dashboard.getHref()} replace />,
+          element: <Navigate to={paths.app.home.getHref()} replace />,
         },
         {
-          path: paths.app.dashboard.path,
-          lazy: () =>
-            import('./routes/app/dashboard').then(convert(queryClient)),
+          path: paths.app.home.path,
+          lazy: () => import('./routes/app/home').then(convert(queryClient)),
         },
         {
           path: paths.app.cameras.path,
           lazy: () => import('./routes/app/cameras').then(convert(queryClient)),
         },
+        {
+          path: paths.app.cameraLive.path,
+          lazy: () =>
+            import('./routes/app/camera-live').then(convert(queryClient)),
+        },
+        {
+          path: paths.app.devices.path,
+          lazy: () => import('./routes/app/devices').then(convert(queryClient)),
+        },
+        {
+          path: paths.app.deviceDetail.path,
+          lazy: () =>
+            import('./routes/app/device-detail').then(convert(queryClient)),
+        },
+        {
+          path: paths.app.settings.path,
+          lazy: () =>
+            import('./routes/app/settings').then(convert(queryClient)),
+        },
       ],
     },
     {
       path: '*',
-      element: <Navigate to={paths.setup.login.getHref()} replace />,
+      element: <Navigate to={paths.setup.device.getHref()} replace />,
     },
   ]);
 

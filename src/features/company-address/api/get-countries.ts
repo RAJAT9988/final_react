@@ -1,5 +1,5 @@
 /**
- * Countries list API — GET /api/v1/address/countries
+ * Countries list API — GET /v1/countries
  *
  * Loads countries for the Country dropdown on the address form.
  */
@@ -8,32 +8,23 @@ import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import { api } from '@/lib/api-client';
 import { QueryConfig } from '@/lib/react-query';
-import { Country, PaginatedApiResponse } from '@/types/api';
+import { Country } from '@/types/api';
 
-// ========== 1) MAIN API CALL ==========
-// Get the country list from backend
 export const getCountries = async (): Promise<Country[]> => {
-  // THIS LINE talks to the backend:
-  // GET {API_URL}/api/v1/address/countries
-  const response = await api.get<
-    unknown,
-    PaginatedApiResponse<Country[]>
-  >('/api/v1/address/countries');
+  const response = await api.get<unknown, Country[] | { data?: Country[] }>(
+    '/v1/countries',
+  );
 
-  // Return the list inside `data`, or [] if missing
-  return response.data ?? [];
+  return Array.isArray(response) ? response : (response.data ?? []);
 };
 
-// ========== 2) QUERY OPTIONS ==========
-// Cache key so React Query does not refetch every time
 export const getCountriesQueryOptions = () =>
   queryOptions({
     queryKey: ['countries'],
     queryFn: getCountries,
+    staleTime: 0,
   });
 
-// ========== 3) REACT QUERY HOOK ==========
-// Lets CompanyAddressForm call: useCountries()
 type UseCountriesOptions = {
   queryConfig?: QueryConfig<typeof getCountriesQueryOptions>;
 };

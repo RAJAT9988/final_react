@@ -1,22 +1,15 @@
 /**
- * Branch registration API — POST /api/v1/company-branch/register-branch
+ * Branch registration API — POST /v1/companies/{company_id}/branches
  *
- * Needs companyId from company step → creates branch → returns branch (with id).
- * That branch id is saved in setup state for the address step.
+ * Needs companyId from the company step → returns CompanyBranchDTO (branch_id).
  */
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/react-query';
-import {
-  ApiResponse,
-  CompanyBranch,
-  CompanyBranchCreatePayload,
-} from '@/types/api';
+import { CompanyBranch, CompanyBranchCreatePayload } from '@/types/api';
 
-// ========== 1) FORM INPUT SHAPE ==========
-// companyId is a UUID string from setup state (saved after company registration)
 export type RegisterBranchInput = {
   companyId: string;
   branchName: string;
@@ -26,8 +19,6 @@ export type RegisterBranchInput = {
   branchContactPersonDesignation: string;
 };
 
-// ========== 2) MAP FORM → BACKEND BODY ==========
-// Backend wants snake_case field names
 const toCreatePayload = (
   data: RegisterBranchInput,
 ): CompanyBranchCreatePayload => ({
@@ -35,33 +26,25 @@ const toCreatePayload = (
   branch_name: data.branchName,
   branch_contact_person_name: data.branchContactPersonName,
   branch_contact_person_email: data.branchContactPersonEmail,
-  branch_contact_person_phone: data.branchContactPersonPhone,
+  branch_contact_person_mobile_no: data.branchContactPersonPhone,
   branch_contact_person_designation: data.branchContactPersonDesignation,
 });
 
-// ========== 3) MAIN API CALL ==========
-// Create branch on backend and return it (includes branch id)
 export const registerBranch = async (
   data: RegisterBranchInput,
 ): Promise<CompanyBranch> => {
-  // THIS LINE talks to the backend:
-  // POST {API_URL}/api/v1/company-branch/register-branch
-  const response = await api.post<
-    CompanyBranchCreatePayload,
-    ApiResponse<CompanyBranch>
-  >('/api/v1/company-branch/register-branch', toCreatePayload(data));
+  const branch = await api.post<CompanyBranchCreatePayload, CompanyBranch>(
+    `/v1/companies/${data.companyId}/branches`,
+    toCreatePayload(data),
+  );
 
-  // Backend must return data.id (the new branch id — a UUID)
-  if (!response.data?.id) {
-    throw new Error(response.message || 'Branch registration failed');
+  if (!branch.branch_id) {
+    throw new Error('Branch registration failed');
   }
 
-  // Give branch object back (id is inside: response.data.id)
-  return response.data;
+  return branch;
 };
 
-// ========== 4) REACT QUERY HOOK ==========
-// Lets CompanyBranchForm call: registerBranch.mutate(values)
 type UseRegisterBranchOptions = {
   mutationConfig?: MutationConfig<typeof registerBranch>;
 };
@@ -69,9 +52,13 @@ type UseRegisterBranchOptions = {
 export const useRegisterBranch = ({
   mutationConfig,
 }: UseRegisterBranchOptions = {}) => {
+  const queryClient = useQueryClient();
   return useMutation({
     ...mutationConfig,
-    // When mutate() runs, call registerBranch above
     mutationFn: registerBranch,
+    onSuccess: (...args) => {
+      void queryClient.invalidateQueries({ queryKey: ['branches'] });
+      mutationConfig?.onSuccess?.(...args);
+    },
   });
 };

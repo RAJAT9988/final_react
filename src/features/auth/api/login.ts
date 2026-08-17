@@ -1,54 +1,92 @@
 /**
- * Login API — POST /api/v1/auth/login
+ * Login API — POST /v1/auth/login and POST /v1/auth/login/verify-2fa
  *
- * Takes email + password → gets JWT tokens → saves them in localStorage.
- * After this, other APIs can send the access token automatically.
+ * JSON { email, password } → tokens, or an MFA challenge.
+ * When mfa_required is true, complete 2FA with the challenge token + code.
  */
 
 import { api } from '@/lib/api-client';
 import { setTokens } from '@/lib/auth-tokens';
-import { ApiResponse, LoginTokenData } from '@/types/api';
+import { LoginTokenData } from '@/types/api';
 
-// ========== 1) FORM INPUT SHAPE ==========
-// What the login form sends
 export type LoginCredentials = {
   email: string;
   password: string;
 };
 
-// ========== 2) MAIN API CALL ==========
-// Login on backend, store tokens, return token data
+export type Verify2faInput = {
+  challengeToken: string;
+  code: string;
+};
+
+type LoginApiResponse = {
+  access_token: string | null;
+  refresh_token: string | null;
+  token_type: string;
+  mfa_required: boolean;
+  challenge_token: string | null;
+};
+
+export class MfaRequiredError extends Error {
+  challengeToken: string;
+
+  constructor(challengeToken: string) {
+    super('Two-factor authentication is required.');
+    this.name = 'MfaRequiredError';
+    this.challengeToken = challengeToken;
+  }
+}
+
+const saveTokens = (response: LoginApiResponse): LoginTokenData => {
+  if (!response.access_token) {
+    throw new Error('Login failed');
+  }
+
+  setTokens({
+    accessToken: response.access_token,
+    refreshToken: response.refresh_token ?? '',
+  });
+
+  return {
+    access_token: response.access_token,
+    refresh_token: response.refresh_token,
+    token_type: response.token_type,
+    mfa_required: response.mfa_required,
+    challenge_token: response.challenge_token,
+  };
+};
+
 export const loginWithEmailAndPassword = async (
   data: LoginCredentials,
 ): Promise<LoginTokenData> => {
-  // Backend login wants form data (OAuth2), not JSON
-  const body = new URLSearchParams();
-  // Field must be named "username", but we put the email value in it
-  body.set('username', data.email);
-  body.set('password', data.password);
-
-  // THIS LINE talks to the backend:
-  // POST {API_URL}/api/v1/auth/login
-  const response = await api.post<URLSearchParams, ApiResponse<LoginTokenData>>(
-    '/api/v1/auth/login',
-    body,
+  const response = await api.post<LoginCredentials, LoginApiResponse>(
+    '/v1/auth/login',
     {
-      // Tell backend this is form-urlencoded (OAuth2 style)
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      email: data.email,
+      password: data.password,
     },
   );
 
-  // No access token in response → login failed
-  if (!response.data?.access_token) {
-    throw new Error(response.message || 'Login failed');
+  if (response.mfa_required) {
+    if (!response.challenge_token) {
+      throw new Error('Two-factor challenge is missing.');
+    }
+    throw new MfaRequiredError(response.challenge_token);
   }
 
-  // Save both tokens so later calls (like get-user) can use them
-  setTokens({
-    accessToken: response.data.access_token,
-    refreshToken: response.data.refresh_token.token,
+  return saveTokens(response);
+};
+
+export const verifyLogin2fa = async (
+  data: Verify2faInput,
+): Promise<LoginTokenData> => {
+  const response = await api.post<
+    { challenge_token: string; code: string },
+    LoginApiResponse
+  >('/v1/auth/login/verify-2fa', {
+    challenge_token: data.challengeToken,
+    code: data.code.trim(),
   });
 
-  // Give token payload back to the caller (auth.tsx)
-  return response.data;
+  return saveTokens(response);
 };

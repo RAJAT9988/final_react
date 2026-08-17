@@ -1,45 +1,34 @@
 /**
- * States list API — GET /api/v1/address/countries/{countryId}/states
+ * States list API — GET /v1/countries/{countryId}/states
  *
- * Loads states for the selected country (State dropdown).
- * Does not call the API until a valid country id is chosen.
+ * Loads states for the selected country. Waits until a country UUID is chosen.
  */
 
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import { api } from '@/lib/api-client';
 import { QueryConfig } from '@/lib/react-query';
-import { ApiResponse, State } from '@/types/api';
+import { State } from '@/types/api';
 
-// ========== 1) MAIN API CALL ==========
-// Get states for one country from backend
 export const getStatesByCountry = async (
-  countryId: number,
+  countryId: string,
 ): Promise<State[]> => {
-  // THIS LINE talks to the backend:
-  // GET {API_URL}/api/v1/address/countries/{countryId}/states
-  const response = await api.get<unknown, ApiResponse<State[]>>(
-    `/api/v1/address/countries/${countryId}/states`,
+  const response = await api.get<unknown, State[] | { data?: State[] }>(
+    `/v1/countries/${countryId}/states`,
   );
 
-  // Return the list inside `data`, or [] if missing
-  return response.data ?? [];
+  return Array.isArray(response) ? response : (response.data ?? []);
 };
 
-// ========== 2) QUERY OPTIONS ==========
-// Cache per country. enabled=false until countryId is a real number
-export const getStatesQueryOptions = (countryId: number) =>
+export const getStatesQueryOptions = (countryId: string) =>
   queryOptions({
     queryKey: ['states', countryId],
     queryFn: () => getStatesByCountry(countryId),
-    // Do not call API when no country is selected yet
-    enabled: Number.isInteger(countryId) && countryId > 0,
+    enabled: countryId.trim().length > 0,
   });
 
-// ========== 3) REACT QUERY HOOK ==========
-// Lets CompanyAddressForm call: useStatesByCountry({ countryId })
 type UseStatesOptions = {
-  countryId: number;
+  countryId: string;
   queryConfig?: QueryConfig<typeof getStatesQueryOptions>;
 };
 
